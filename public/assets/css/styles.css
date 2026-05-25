@@ -1,9 +1,5 @@
-/* Resurvey Alda - Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500;600;700&display=swap');
 
-/* Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500;600&display=swap');
-
-/* Design Tokens */
 :root {
   --primary-dark: #03045E;
   --primary-base: #003566;
@@ -17,14 +13,12 @@
   --text-on-dark: #FFFFFF;
   --border-subtle: #E5E7EB;
   --error: #EF4444;
-
-  /* Tambahan Variabel untuk Fitur Baru */
   --error-light: #FEE2E2;
   --success: #10B981;
   --success-light: #D1FAE5;
+  --warning: #F59E0B;
 }
 
-/* Reset & Base Styles */
 * {
   margin: 0;
   padding: 0;
@@ -39,12 +33,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background Pattern */
 .page-background {
   min-height: 100vh;
   background-color: var(--primary-base);
   position: relative;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .page-background::before {
@@ -113,23 +108,6 @@ body {
   opacity: 0.8;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.2s;
-  color: var(--text-on-dark);
-}
-
-.back-button:hover {
-  opacity: 0.8;
-}
-
-/* Login Page Styles */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -312,11 +290,13 @@ body {
   color: rgba(255, 255, 255, 0.45);
 }
 
-/* Dashboard Styles */
 .dashboard-content {
   padding: 24px 20px;
   position: relative;
   z-index: 10;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .greeting-section {
@@ -364,6 +344,7 @@ body {
 
 .task-icon {
   flex-shrink: 0;
+  color: var(--primary-base);
 }
 
 .task-label {
@@ -430,15 +411,64 @@ body {
 }
 
 
-/* ==========================================================
-   KOMPONEN BARU: TUGAS BARU, ALERT, DAN MODAL BOTTOM SHEET
-   ========================================================== */
+.mobile-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
-/* Alerts / Notifikasi */
+.page-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: var(--surface-white);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  color: var(--primary-dark);
+  transition: opacity 0.2s;
+}
+
+.back-btn:active {
+  opacity: 0.6;
+}
+
+.page-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.task-list-container {
+  padding: 16px;
+  padding-bottom: 40px;
+  flex: 1;
+}
+
 .alert {
   padding: 12px 16px;
   border-radius: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-size: 13px;
   font-weight: 500;
   text-align: center;
@@ -448,22 +478,22 @@ body {
 .alert-error {
   background-color: var(--error-light);
   color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .alert-success {
   background-color: var(--success-light);
   color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-/* Card untuk Daftar Tugas di Halaman Tugas Baru */
 .task-card {
   background-color: var(--surface-white);
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
-  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.15);
   position: relative;
-  z-index: 10;
 }
 
 .task-header {
@@ -475,22 +505,36 @@ body {
   padding-bottom: 12px;
 }
 
-.badge-primary {
-  background-color: rgba(0, 180, 216, 0.15);
-  color: var(--primary-mid);
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+.contract-no {
   font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--primary-mid);
+  font-size: 14px;
 }
 
-.task-title {
+.task-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.customer-name {
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+  margin: 0 0 6px 0;
+}
+
+.customer-vehicle {
+  font-size: 13px;
+  color: var(--text-muted);
   margin-bottom: 12px;
+  display: inline-block;
+  background: var(--surface-bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
 }
 
 .detail-row {
@@ -505,12 +549,11 @@ body {
   width: 16px;
   height: 16px;
   margin-right: 8px;
-  color: var(--primary-mid);
+  color: var(--primary-light);
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-/* Action Buttons (Detail & Proses) */
 .action-group {
   display: flex;
   gap: 12px;
@@ -550,12 +593,10 @@ body {
   color: var(--primary-mid);
 }
 
-/* Modal Bottom Sheet */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 4, 94, 0.5);
-  /* Sesuai tone primary-dark */
+  background: rgba(3, 4, 94, 0.7);
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -581,7 +622,7 @@ body {
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0px -4px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px -4px 24px rgba(0, 0, 0, 0.2);
 }
 
 .modal-overlay.active .modal-container {
@@ -631,35 +672,23 @@ body {
   background: rgba(229, 231, 235, 0.3);
   padding: 12px 16px;
   border-radius: 12px;
-}
-
-.info-group:last-child {
-  margin-bottom: 0;
+  border: 1px solid var(--border-subtle);
 }
 
 .info-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-bottom: 4px;
   display: block;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .info-value {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
-}
-
-/* Template Page (Empty State) */
-.template-content {
-  min-height: calc(100vh - 64px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 20px;
-  position: relative;
-  z-index: 10;
+  word-break: break-word;
 }
 
 .empty-state {
@@ -667,14 +696,17 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  padding: 40px 20px;
 }
 
-.empty-icon {
-  color: rgba(0, 180, 216, 0.4);
+.empty-state svg {
+  width: 64px;
+  height: 64px;
   margin-bottom: 16px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.empty-title {
+.empty-state h3 {
   font-family: 'Poppins', sans-serif;
   font-size: 18px;
   font-weight: 600;
@@ -682,13 +714,11 @@ body {
   margin-bottom: 8px;
 }
 
-.empty-description {
-  font-family: 'Inter', sans-serif;
+.empty-state p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* SVG Icons */
 .icon {
   width: 20px;
   height: 20px;
@@ -709,13 +739,6 @@ body {
   height: 28px;
 }
 
-.icon-2xl {
-  width: 80px;
-  height: 80px;
-  stroke-width: 1.5;
-}
-
-/* Responsive */
 @media (max-width: 390px) {
   .navbar {
     padding: 0 16px;
