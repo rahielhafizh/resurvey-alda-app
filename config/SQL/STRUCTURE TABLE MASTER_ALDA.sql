@@ -1,0 +1,30 @@
+USE [MOBILE_COLLECTION]
+GO
+
+/****** Object:  Table [dbo].[MASTER_ALDA]    Script Date: 19/05/2026 14:03:41 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[MASTER_ALDA](
+	[AREA] [varchar](50) NULL,
+	[BRANCH_ID] [varchar](20) NULL,
+	[BRANCH_NAME] [varchar](200) NULL,
+	[PORTFOLIO] [varchar](20) NULL,
+	[NOMOR_KONTRAK] [varchar](50) NOT NULL,
+	[CUSTOMER_NAME] [varchar](300) NULL,
+	[GO_LIVE_DATE] [datetime] NULL,
+	[TANGGAL_BAYAR_ANGS_TERAKHIR] [datetime] NULL,
+	[MERK_KENDARAAN] [varchar](100) NULL,
+	[TYPE_KENDARAAN] [varchar](200) NULL,
+	[TAHUN_KENDARAAN] [int] NULL,
+	[CUSTOMER_PHONE] [varchar](50) NULL,
+	[LEGAL_ADDRESS] [varchar](max) NULL,
+	[CONTRACT_STATUS] [varchar](50) NULL,
+	[AMOUNT_TO_BE_PAID] [decimal](18, 2) NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
