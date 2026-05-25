@@ -138,7 +138,7 @@ function svgIcon(string $name, string $class = 'icon'): string
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Detail Nasabah (On Process)</h3>
+                <h3 class="modal-title">Detail Nasabah (On Proses)</h3>
                 <button class="modal-close" onclick="closeModal()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">

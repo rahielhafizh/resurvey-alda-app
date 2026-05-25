@@ -19,14 +19,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $params_update = array(
             array($penugasan_id, SQLSRV_PARAM_IN),
             array($nik, SQLSRV_PARAM_IN),
-            array('ON_PROCESS', SQLSRV_PARAM_IN)
+            array('IN_PROGRESS', SQLSRV_PARAM_IN)
         );
         $stmt_update = sqlsrv_query($conn, $tsql_update, $params_update);
 
         if ($stmt_update) {
             $result = sqlsrv_fetch_array($stmt_update, SQLSRV_FETCH_ASSOC);
             if ($result && $result['success'] == 1) {
-                $_SESSION['flash_success'] = "Tugas berhasil dipindahkan ke proses.";
+                $_SESSION['flash_success'] = "Penugasan berhasil dilanjutkan ke tahap proses.";
                 header("Location: tugas-proses.php");
                 exit();
             } else {
@@ -47,7 +47,7 @@ $params = array(
 $stmt = sqlsrv_query($conn, $tsql, $params);
 
 if ($stmt === false) {
-    $error_message = "Terjadi kesalahan saat mengambil data penugasan.";
+    $error_message = "Terjadi kesalahan mengambil data penugasan.";
 } else {
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $tasks[] = $row;
