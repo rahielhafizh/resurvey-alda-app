@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true)
     exit();
 }
 
-$pageTitle = 'Tugas Sedang Berjalan';
+$pageTitle = 'Sedang Berjalan';
 $emptyStateText = 'Data akan ditampilkan di sini setelah tersedia.';
 
 function svgIcon(string $name, string $class = 'icon'): string
