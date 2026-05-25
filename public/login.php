@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 function svgIcon(string $name, string $class = 'icon'): string
 {
-    $path = __DIR__ . '/../assets/icons/' . $name . '.svg';
+    $path = __DIR__ . '/assets/icons/' . $name . '.svg';
     if (!file_exists($path)) {
         return '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" viewBox="0 0 24 24"></svg>';
     }
