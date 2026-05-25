@@ -11,7 +11,6 @@ $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
 
-// Proses Submit Update Status ke ON_PROCESS
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'proses_tugas') {
     $penugasan_id = $_POST['penugasan_id'] ?? null;
 
@@ -39,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Get Data Penugasan (ASSIGNED)
 $tsql = "{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}";
 $params = array(
     array($nik, SQLSRV_PARAM_IN),
@@ -109,7 +107,7 @@ function svgIcon(string $name, string $class = 'icon'): string
                     <div class="empty-state">
                         <?php echo svgIcon('empty-folder-icon'); ?>
                         <h3>Belum ada tugas baru</h3>
-                        <p>Saat ini tidak ada penugasan baru yang dialokasikan untuk Anda.</p>
+                        <p>Saat ini tidak ada penugasan baru untuk Anda.</p>
                     </div>
                 <?php else: ?>
                     <?php foreach ($tasks as $task):
@@ -183,7 +181,7 @@ function svgIcon(string $name, string $class = 'icon'): string
             </div>
             <div class="modal-body">
                 <div class="info-group">
-                    <span class="info-label">Nomor Kontrak</span>
+                    <span class="info-label">No Kontrak</span>
                     <span class="info-value" id="mdlContract">-</span>
                 </div>
                 <div class="info-group">
@@ -191,7 +189,7 @@ function svgIcon(string $name, string $class = 'icon'): string
                     <span class="info-value" id="mdlCustomer">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Alamat Kunjungan</span>
+                    <span class="info-label">Alamat</span>
                     <span class="info-value" id="mdlAddress">-</span>
                 </div>
                 <div class="info-group">
@@ -199,11 +197,11 @@ function svgIcon(string $name, string $class = 'icon'): string
                     <span class="info-value" id="mdlPhone">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Kendaraan</span>
+                    <span class="info-label">Unit Kendaraan</span>
                     <span class="info-value" id="mdlVehicle">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Amount to be Paid</span>
+                    <span class="info-label">Tagihan</span>
                     <span class="info-value" style="color: var(--error);" id="mdlAmount">-</span>
                 </div>
             </div>
@@ -218,7 +216,6 @@ function svgIcon(string $name, string $class = 'icon'): string
             document.getElementById('mdlPhone').innerText = data.phone;
             document.getElementById('mdlVehicle').innerText = data.vehicle || '-';
             document.getElementById('mdlAmount').innerText = data.amount;
-
             document.getElementById('detailModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }

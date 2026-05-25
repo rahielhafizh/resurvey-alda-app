@@ -149,7 +149,7 @@ function svgIcon(string $name, string $class = 'icon'): string
             </div>
             <div class="modal-body">
                 <div class="info-group">
-                    <span class="info-label">Nomor Kontrak</span>
+                    <span class="info-label">No Kontrak</span>
                     <span class="info-value" id="mdlContract">-</span>
                 </div>
                 <div class="info-group">
@@ -157,7 +157,7 @@ function svgIcon(string $name, string $class = 'icon'): string
                     <span class="info-value" id="mdlCustomer">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Alamat Kunjungan</span>
+                    <span class="info-label">Alamat</span>
                     <span class="info-value" id="mdlAddress">-</span>
                 </div>
                 <div class="info-group">
@@ -165,11 +165,11 @@ function svgIcon(string $name, string $class = 'icon'): string
                     <span class="info-value" id="mdlPhone">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Kendaraan</span>
+                    <span class="info-label">Unit Kendaraan</span>
                     <span class="info-value" id="mdlVehicle">-</span>
                 </div>
                 <div class="info-group">
-                    <span class="info-label">Amount to be Paid</span>
+                    <span class="info-label">Tagihan</span>
                     <span class="info-value" style="color: var(--error);" id="mdlAmount">-</span>
                 </div>
             </div>
