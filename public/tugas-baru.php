@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 session_start();
 require_once __DIR__ . '/../config/connection.php';
 
@@ -11,43 +13,55 @@ $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'proses_tugas') {
-    $penugasan_id = $_POST['penugasan_id'] ?? null;
+// ── Handle status-update action ──────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'proses_tugas') {
 
-    if ($penugasan_id) {
-        $tsql_update = "{CALL SP_ALDA_PIC_UPDATE_STATUS(?, ?, ?)}";
-        $params_update = array(
-            array($penugasan_id, SQLSRV_PARAM_IN),
-            array($nik, SQLSRV_PARAM_IN),
-            array('IN_PROGRESS', SQLSRV_PARAM_IN)
-        );
+    // Validate PENUGASAN_ID is a positive integer before touching the database.
+    $raw_id = $_POST['penugasan_id'] ?? '';
+    $penugasan_id = (ctype_digit((string) $raw_id) && (int) $raw_id > 0)
+        ? (int) $raw_id
+        : null;
+
+    if ($penugasan_id === null) {
+        $error_message = 'ID penugasan tidak valid.';
+    } else {
+        $tsql_update = '{CALL SP_ALDA_PIC_UPDATE_STATUS(?, ?, ?)}';
+        $params_update = [
+            [$penugasan_id, SQLSRV_PARAM_IN],
+            [$nik, SQLSRV_PARAM_IN],
+            ['IN_PROGRESS', SQLSRV_PARAM_IN],
+        ];
+
         $stmt_update = sqlsrv_query($conn, $tsql_update, $params_update);
 
-        if ($stmt_update) {
+        if ($stmt_update === false) {
+            $error_message = 'Terjadi kesalahan server saat mengubah status.';
+        } else {
             $result = sqlsrv_fetch_array($stmt_update, SQLSRV_FETCH_ASSOC);
-            if ($result && $result['success'] == 1) {
-                $_SESSION['flash_success'] = "Penugasan berhasil dilanjutkan ke tahap proses.";
-                header("Location: tugas-proses.php");
+            sqlsrv_free_stmt($stmt_update);
+
+            if ($result && (bool) $result['success'] === true) {
+                $_SESSION['flash_success'] = 'Penugasan berhasil dilanjutkan ke tahap proses.';
+                header('Location: tugas-proses.php');
                 exit();
             } else {
-                $error_message = $result['message'] ?? "Gagal memproses tugas.";
+                $error_message = $result['message'] ?? 'Gagal memproses tugas.';
             }
-        } else {
-            $error_message = "Terjadi kesalahan server saat mengubah status.";
         }
     }
 }
 
-$tsql = "{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}";
-$params = array(
-    array($nik, SQLSRV_PARAM_IN),
-    array('ASSIGNED', SQLSRV_PARAM_IN)
-);
+// ── Fetch ASSIGNED tasks for the logged-in PIC ───────────────────────────────
+$tsql = '{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}';
+$params = [
+    [$nik, SQLSRV_PARAM_IN],
+    ['ASSIGNED', SQLSRV_PARAM_IN],
+];
 
 $stmt = sqlsrv_query($conn, $tsql, $params);
 
 if ($stmt === false) {
-    $error_message = "Terjadi kesalahan mengambil data penugasan.";
+    $error_message = 'Terjadi kesalahan mengambil data penugasan.';
 } else {
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $tasks[] = $row;
@@ -55,16 +69,18 @@ if ($stmt === false) {
     sqlsrv_free_stmt($stmt);
 }
 
-function formatRupiah($angka)
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function formatRupiah(mixed $angka): string
 {
-    return "Rp " . number_format((float) $angka, 0, ',', '.');
+    return 'Rp ' . number_format((float) $angka, 0, ',', '.');
 }
 
 function svgIcon(string $name, string $class = 'icon'): string
 {
     $path = __DIR__ . '/assets/icons/' . $name . '.svg';
-    if (!file_exists($path))
+    if (!file_exists($path)) {
         return '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" viewBox="0 0 24 24"></svg>';
+    }
     $svg = file_get_contents($path);
     if (preg_match('/\bclass="/', $svg)) {
         return preg_replace('/\bclass="/', 'class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' ', $svg, 1);
@@ -118,22 +134,28 @@ function svgIcon(string $name, string $class = 'icon'): string
                             'phone' => $task['CUSTOMER_PHONE'],
                             'vehicle' => $task['KENDARAAN'],
                             'amount' => formatRupiah($task['AMOUNT_TO_BE_PAID']),
-                            'date' => $task['TANGGAL_ASSIGN'] ? $task['TANGGAL_ASSIGN']->format('d M Y H:i') : '-'
+                            'date' => ($task['TANGGAL_ASSIGN'] instanceof DateTime)
+                                ? $task['TANGGAL_ASSIGN']->format('d M Y H:i')
+                                : '-',
                         ]);
                         ?>
                         <div class="task-card">
                             <div class="task-header">
-                                <span
-                                    class="contract-no"><?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <span class="contract-no">
+                                    <?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?>
+                                </span>
                                 <span class="task-date">
-                                    <?php echo $task['TANGGAL_ASSIGN'] ? $task['TANGGAL_ASSIGN']->format('d M Y H:i') : '-'; ?>
+                                    <?php echo ($task['TANGGAL_ASSIGN'] instanceof DateTime)
+                                        ? $task['TANGGAL_ASSIGN']->format('d M Y H:i')
+                                        : '-'; ?>
                                 </span>
                             </div>
 
                             <h3 class="customer-name">
-                                <?php echo htmlspecialchars($task['CUSTOMER_NAME'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                <?php echo htmlspecialchars($task['CUSTOMER_NAME'], ENT_QUOTES, 'UTF-8'); ?>
+                            </h3>
 
-                            <?php if (trim($task['KENDARAAN']) !== ''): ?>
+                            <?php if (trim((string) $task['KENDARAAN']) !== ''): ?>
                                 <div class="customer-vehicle">
                                     🚗 <?php echo htmlspecialchars($task['KENDARAAN'], ENT_QUOTES, 'UTF-8'); ?>
                                 </div>
@@ -145,18 +167,19 @@ function svgIcon(string $name, string $class = 'icon'): string
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
-                                <span><?php echo htmlspecialchars($task['LEGAL_ADDRESS'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <span><?php echo htmlspecialchars((string) $task['LEGAL_ADDRESS'], ENT_QUOTES, 'UTF-8'); ?></span>
                             </div>
 
                             <div class="action-group">
                                 <button type="button" class="btn btn-outline"
-                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>Detail</button>
+                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>
+                                    Detail
+                                </button>
 
                                 <form method="POST" style="flex: 1;"
                                     onsubmit="return confirm('Mulai proses tugas ini? Data akan dipindahkan ke tab Tugas Diproses.');">
                                     <input type="hidden" name="action" value="proses_tugas">
-                                    <input type="hidden" name="penugasan_id"
-                                        value="<?php echo htmlspecialchars($task['PENUGASAN_ID'], ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="penugasan_id" value="<?php echo (int) $task['PENUGASAN_ID']; ?>">
                                     <button type="submit" class="btn btn-primary" style="width: 100%;">Proses</button>
                                 </form>
                             </div>
@@ -167,6 +190,7 @@ function svgIcon(string $name, string $class = 'icon'): string
         </div>
     </div>
 
+    <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">

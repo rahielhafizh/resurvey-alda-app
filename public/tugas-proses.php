@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 session_start();
 require_once __DIR__ . '/../config/connection.php';
 
@@ -11,17 +13,19 @@ $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
 
-// Get Data ON_PROCESS
-$tsql = "{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}";
-$params = array(
-    array($nik, SQLSRV_PARAM_IN),
-    array('ON_PROCESS', SQLSRV_PARAM_IN)
-);
+// ── Fetch IN_PROGRESS tasks for the logged-in PIC ────────────────────────────
+// Previously queried with 'ON_PROCESS' which does not exist in the status
+// constraint (ASSIGNED | IN_PROGRESS | COMPLETED | CANCELLED).
+$tsql = '{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}';
+$params = [
+    [$nik, SQLSRV_PARAM_IN],
+    ['IN_PROGRESS', SQLSRV_PARAM_IN],
+];
 
 $stmt = sqlsrv_query($conn, $tsql, $params);
 
 if ($stmt === false) {
-    $error_message = "Terjadi kesalahan saat mengambil data penugasan.";
+    $error_message = 'Terjadi kesalahan saat mengambil data penugasan.';
 } else {
     while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $tasks[] = $row;
@@ -29,16 +33,18 @@ if ($stmt === false) {
     sqlsrv_free_stmt($stmt);
 }
 
-function formatRupiah($angka)
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function formatRupiah(mixed $angka): string
 {
-    return "Rp " . number_format((float) $angka, 0, ',', '.');
+    return 'Rp ' . number_format((float) $angka, 0, ',', '.');
 }
 
 function svgIcon(string $name, string $class = 'icon'): string
 {
     $path = __DIR__ . '/assets/icons/' . $name . '.svg';
-    if (!file_exists($path))
+    if (!file_exists($path)) {
         return '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" viewBox="0 0 24 24"></svg>';
+    }
     $svg = file_get_contents($path);
     if (preg_match('/\bclass="/', $svg)) {
         return preg_replace('/\bclass="/', 'class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' ', $svg, 1);
@@ -52,7 +58,7 @@ function svgIcon(string $name, string $class = 'icon'): string
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tugas Sedang Diproses - Resurvey Alda</title>
+    <title>Tugas Diproses - Resurvey Alda</title>
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
@@ -99,20 +105,30 @@ function svgIcon(string $name, string $class = 'icon'): string
                             'phone' => $task['CUSTOMER_PHONE'],
                             'vehicle' => $task['KENDARAAN'],
                             'amount' => formatRupiah($task['AMOUNT_TO_BE_PAID']),
-                            'date' => $task['TANGGAL_ASSIGN'] ? $task['TANGGAL_ASSIGN']->format('d M Y H:i') : '-'
                         ]);
                         ?>
                         <div class="task-card" style="border-left: 5px solid var(--warning);">
                             <div class="task-header">
-                                <span
-                                    class="contract-no"><?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <span class="contract-no">
+                                    <?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?>
+                                </span>
                                 <span class="task-date">
-                                    Diproses: <?php echo $task['UPDATED_AT'] ? $task['UPDATED_AT']->format('d M Y') : '-'; ?>
+                                    Diproses:
+                                    <?php echo ($task['UPDATED_AT'] instanceof DateTime)
+                                        ? $task['UPDATED_AT']->format('d M Y')
+                                        : '-'; ?>
                                 </span>
                             </div>
 
                             <h3 class="customer-name">
-                                <?php echo htmlspecialchars($task['CUSTOMER_NAME'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                <?php echo htmlspecialchars($task['CUSTOMER_NAME'], ENT_QUOTES, 'UTF-8'); ?>
+                            </h3>
+
+                            <?php if (trim((string) $task['KENDARAAN']) !== ''): ?>
+                                <div class="customer-vehicle">
+                                    🚗 <?php echo htmlspecialchars($task['KENDARAAN'], ENT_QUOTES, 'UTF-8'); ?>
+                                </div>
+                            <?php endif; ?>
 
                             <div class="detail-row">
                                 <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -120,13 +136,14 @@ function svgIcon(string $name, string $class = 'icon'): string
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
-                                <span><?php echo htmlspecialchars($task['LEGAL_ADDRESS'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <span><?php echo htmlspecialchars((string) $task['LEGAL_ADDRESS'], ENT_QUOTES, 'UTF-8'); ?></span>
                             </div>
 
                             <div class="action-group">
                                 <button type="button" class="btn btn-outline" style="width: 100%;"
-                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>Lihat
-                                    Detail Nasabah</button>
+                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>
+                                    Lihat Detail Nasabah
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -135,10 +152,11 @@ function svgIcon(string $name, string $class = 'icon'): string
         </div>
     </div>
 
+    <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Detail Nasabah (On Proses)</h3>
+                <h3 class="modal-title">Detail Nasabah (Sedang Diproses)</h3>
                 <button class="modal-close" onclick="closeModal()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">

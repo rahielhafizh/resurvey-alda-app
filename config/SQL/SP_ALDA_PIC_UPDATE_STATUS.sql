@@ -25,7 +25,6 @@ BEGIN
         @message               VARCHAR(500);
 
     BEGIN TRY
-        -- Validasi penugasan
         SELECT 
             @contract_no = CONTRACT_NO,
             @existing_status = STATUS,
@@ -48,7 +47,6 @@ BEGIN
 
         SET @new_version = ISNULL(@existing_ver, 0) + 1;
 
-        -- Perbaikan: Insert log audit history menyertakan field PIC secara lengkap dan mengubah type menjadi STATUS_CHANGE
         INSERT INTO ALDA_PENUGASAN_HISTORY
             ( PENUGASAN_ID, CONTRACT_NO, CHANGE_TYPE, CHANGE_REASON, CHANGED_AT, CHANGED_BY,
               STATUS_BEFORE, STATUS_AFTER, ASSIGN_VERSION_BEFORE, ASSIGN_VERSION_AFTER,
@@ -64,7 +62,6 @@ BEGIN
         FROM ALDA_PENUGASAN WITH (NOLOCK)
         WHERE PENUGASAN_ID = @PENUGASAN_ID;
 
-        -- Update main table
         UPDATE ALDA_PENUGASAN
         SET STATUS = @NEW_STATUS,
             ASSIGN_VERSION = @new_version,
