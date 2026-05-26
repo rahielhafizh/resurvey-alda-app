@@ -40,41 +40,6 @@ Suzuki Finance Indonesia maintains a portfolio of ALDA vehicle financing contrac
 
 The solution implements a three-tier, server-rendered architecture with a strict separation between presentation, application, and data layers. The PHP application tier handles session management, input validation, HTML rendering, and stored procedure dispatch. No business logic resides in the browser; the client receives rendered HTML and executes minimal vanilla JavaScript for modal interactions and form submission guards only.
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                  Client — Mobile Browser                     │
-│        Server-rendered HTML · Vanilla ES5+ JavaScript        │
-└──────────────────────────┬───────────────────────────────────┘
-                           │  HTTP — Form POST / GET
-┌──────────────────────────▼───────────────────────────────────┐
-│               Application Tier — PHP 8.3                     │
-│                                                              │
-│  index.php                  Routing / session redirect       │
-│  login.php                  Credential validation            │
-│  dashboard.php              Workload summary hub             │
-│  tugas-baru.php             ASSIGNED task list & advance     │
-│  tugas-proses.php           IN_PROGRESS task list (read)     │
-│  tugas-sedang-berjalan.php  Stub — COMPLETED view            │
-│  selesai.php                Stub                             │
-│  upload.php                 Stub                             │
-│  logout.php                 Session teardown                 │
-└──────────────────────────┬───────────────────────────────────┘
-                           │  sqlsrv extension — RPC / T-SQL
-┌──────────────────────────▼───────────────────────────────────┐
-│        Data Tier — SQL Server 2008 · MOBILE_COLLECTION       │
-│                                                              │
-│  MASTER_ALDA               Customer & ContractID             │
-│  MASTER_ALDA_PIC           PIC Master Data                   │
-│  ALDA_PENUGASAN            Active task assignments           │
-│  ALDA_PENUGASAN_HISTORY    Immutable audit ledger            │
-│  ALDA_STATUS_REF           Status code reference             │
-│                                                              │
-│  11 Stored Procedures (see §7)                               │
-└──────────────────────────────────────────────────────────────┘
-```
-
-The sole exception to the stored-procedure-only data access rule is an inline `SELECT` in `dashboard.php`, which queries `MASTER_ALDA_PIC` directly to re-validate PIC session liveness on every page load.
-
 ---
 
 ## 3. Database Schema
@@ -85,21 +50,21 @@ The read-only source of all customer and contract data. Records are provisioned 
 
 | Column | Type | Purpose |
 |---|---|---|
-| `AREA` | `varchar(50)` | Regional area classification for the contract. |
-| `BRANCH_ID` | `varchar(20)` | Identifier of the branch responsible for the contract. |
-| `BRANCH_NAME` | `varchar(200)` | Human-readable name of the branch. |
-| `PORTFOLIO` | `varchar(20)` | Portfolio segment classification (e.g. retail, commercial). |
-| `NOMOR_KONTRAK` | `varchar(50)` PK | Unique contract number; the primary identifier joining this table to `ALDA_PENUGASAN`. |
-| `CUSTOMER_NAME` | `varchar(300)` | Full registered name of the financing customer. |
+| `AREA` | `varchar(50)` | Name of the Area region. |
+| `BRANCH_ID` | `varchar(20)` | ID of the branch |
+| `BRANCH_NAME` | `varchar(200)` | Name of the branch. |
+| `PORTFOLIO` | `varchar(20)` | Portfolio segment classification (2W/4W). |
+| `NOMOR_KONTRAK` | `varchar(50)` | Primary identifier joining this table to `ALDA_PENUGASAN`. |
+| `CUSTOMER_NAME` | `varchar(300)` | Full registered name of the customer. |
 | `GO_LIVE_DATE` | `datetime` | Date the financing contract was activated. |
-| `TANGGAL_BAYAR_ANGS_TERAKHIR` | `datetime` | Date of the customer's most recent instalment payment. |
-| `MERK_KENDARAAN` | `varchar(100)` | Vehicle make (manufacturer brand). |
-| `TYPE_KENDARAAN` | `varchar(200)` | Vehicle model or variant designation. |
+| `TANGGAL_BAYAR_ANGS_TERAKHIR` | `datetime` | Date of the customer's most recent installment payment. |
+| `MERK_KENDARAAN` | `varchar(100)` | Vehicle manufacturer brand. |
+| `TYPE_KENDARAAN` | `varchar(200)` | Vehicle model or variant. |
 | `TAHUN_KENDARAAN` | `int` | Vehicle year of manufacture. |
-| `CUSTOMER_PHONE` | `varchar(50)` | Customer contact telephone number. |
-| `LEGAL_ADDRESS` | `varchar(max)` | Customer's registered legal address as recorded on the financing agreement. |
-| `CONTRACT_STATUS` | `varchar(50)` | Current contract status as reported by the core system (e.g. active, overdue). |
-| `AMOUNT_TO_BE_PAID` | `decimal(18,2)` | Outstanding amount due from the customer at the time of data extraction. |
+| `CUSTOMER_PHONE` | `varchar(50)` | Customer telephone number. |
+| `LEGAL_ADDRESS` | `varchar(max)` | Customer's registered legal address. |
+| `CONTRACT_STATUS` | `varchar(50)` | Current contract status. |
+| `AMOUNT_TO_BE_PAID` | `decimal(18,2)` | Outstanding amount due of the customer. |
 
 ---
 
@@ -109,14 +74,17 @@ Defines the complete roster of field officers authorised to receive task assignm
 
 | Column | Type | Purpose |
 |---|---|---|
-| `AREA` | `varchar(100)` | Regional area to which the PIC is assigned. |
+| `AREA` | `varchar(100)` | Regional area the PIC is assigned. |
 | `CABANG` | `varchar(100)` | Branch name of the PIC's home office. |
-| `BRANCH_ID` | `varchar(10)` | Machine-readable branch identifier; used to filter PIC dropdowns by branch in the back-office. |
-| `NIK` | `varchar(50)` | Employee identification number; the login key and the primary identifier used in all assignment and comparison operations. |
-| `NAMA` | `varchar(200)` | PIC full name, written to the session on login and displayed throughout the application. |
-| `JABATAN` | `varchar(100)` | Job title or designation; snapshotted into `ALDA_PENUGASAN` at assignment time. |
-| `PILAR` | `varchar(100)` | Organisational pillar or division; snapshotted at assignment. |
-| `LOKASI_FISIK` | `varchar(100)` | Physical office or location of the PIC; snapshotted at assignment. |
+| `BRANCH_ID` | `varchar(10)` | ID of the branch (used as filter). |
+| `NIK` | `varchar(50)` | Employee identification number; the login key and the primary identifier. |
+| `NAMA` | `varchar(200)` | PIC full name. |
+| `JABATAN` | `varchar(100)` | Job title or designation; 
+snapshotted at assignment into `ALDA_PENUGASAN`. |
+| `PILAR` | `varchar(100)` | Organisational pillar or division; 
+snapshotted at assignment into `ALDA_PENUGASAN`. |
+| `LOKASI_FISIK` | `varchar(100)` | Physical office location; 
+snapshotted at assignment into `ALDA_PENUGASAN`. |
 | `LOKASI_PEKERJAAN` | `varchar(100)` | Operational work location, which may differ from `LOKASI_FISIK`; snapshotted at assignment. |
 | `IS_ACTIVE` | `bit` | Active status flag. `1` permits login; `0` blocks authentication and invalidates live sessions. Default is `0`. |
 
@@ -151,7 +119,7 @@ The central operational table. Each row represents a single active contract assi
 | `LEGAL_ADDRESS` | `varchar(max)` | Customer legal address, snapshotted from `MASTER_ALDA` at assignment. |
 | `CUSTOMER_PHONE` | `varchar(50)` | Customer telephone number, snapshotted from `MASTER_ALDA` at assignment. |
 | `GO_LIVE_DATE` | `datetime` | Contract activation date, snapshotted from `MASTER_ALDA` at assignment. |
-| `TANGGAL_BAYAR_ANGS_TERAKHIR` | `datetime` | Date of last instalment payment, snapshotted from `MASTER_ALDA` at assignment. |
+| `TANGGAL_BAYAR_ANGS_TERAKHIR` | `datetime` | Date of last installment payment, snapshotted from `MASTER_ALDA` at assignment. |
 | `MERK_KENDARAAN` | `varchar(100)` | Vehicle make, snapshotted from `MASTER_ALDA` at assignment. |
 | `TYPE_KENDARAAN` | `varchar(200)` | Vehicle model, snapshotted from `MASTER_ALDA` at assignment. |
 | `TAHUN_KENDARAAN` | `int` | Vehicle year of manufacture, snapshotted from `MASTER_ALDA` at assignment. |
