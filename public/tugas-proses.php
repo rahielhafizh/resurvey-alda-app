@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 session_start();
-require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/database.php';
+$db = new Database();
 
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true || !isset($_SESSION['user_nik'])) {
     header('Location: login.php');
@@ -12,25 +13,12 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true 
 $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
+$tasks_result = $db->getTasks($nik, 'IN_PROGRESS');
 
-// ── Fetch IN_PROGRESS tasks for the logged-in PIC ────────────────────────────
-// Previously queried with 'ON_PROCESS' which does not exist in the status
-// constraint (ASSIGNED | IN_PROGRESS | COMPLETED | CANCELLED).
-$tsql = '{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}';
-$params = [
-    [$nik, SQLSRV_PARAM_IN],
-    ['IN_PROGRESS', SQLSRV_PARAM_IN],
-];
-
-$stmt = sqlsrv_query($conn, $tsql, $params);
-
-if ($stmt === false) {
+if ($tasks_result === false) {
     $error_message = 'Terjadi kesalahan saat mengambil data penugasan.';
 } else {
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $tasks[] = $row;
-    }
-    sqlsrv_free_stmt($stmt);
+    $tasks = $tasks_result;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -152,7 +140,6 @@ function svgIcon(string $name, string $class = 'icon'): string
         </div>
     </div>
 
-    <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">

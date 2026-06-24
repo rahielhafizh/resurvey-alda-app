@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 session_start();
-require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/database.php';
+$db = new Database();
 
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true || !isset($_SESSION['user_nik'])) {
     header('Location: login.php');
@@ -13,10 +14,7 @@ $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
 
-// ── Handle status-update action ──────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'proses_tugas') {
-
-    // Validate PENUGASAN_ID is a positive integer before touching the database.
     $raw_id = $_POST['penugasan_id'] ?? '';
     $penugasan_id = (ctype_digit((string) $raw_id) && (int) $raw_id > 0)
         ? (int) $raw_id
@@ -25,21 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'prose
     if ($penugasan_id === null) {
         $error_message = 'ID penugasan tidak valid.';
     } else {
-        $tsql_update = '{CALL SP_ALDA_PIC_UPDATE_STATUS(?, ?, ?)}';
-        $params_update = [
-            [$penugasan_id, SQLSRV_PARAM_IN],
-            [$nik, SQLSRV_PARAM_IN],
-            ['IN_PROGRESS', SQLSRV_PARAM_IN],
-        ];
+        $result = $db->updateTaskStatus($penugasan_id, $nik, 'IN_PROGRESS');
 
-        $stmt_update = sqlsrv_query($conn, $tsql_update, $params_update);
-
-        if ($stmt_update === false) {
+        if ($result === false) {
             $error_message = 'Terjadi kesalahan server saat mengubah status.';
         } else {
-            $result = sqlsrv_fetch_array($stmt_update, SQLSRV_FETCH_ASSOC);
-            sqlsrv_free_stmt($stmt_update);
-
             if ($result && (bool) $result['success'] === true) {
                 $_SESSION['flash_success'] = 'Penugasan berhasil dilanjutkan ke tahap proses.';
                 header('Location: tugas-proses.php');
@@ -51,25 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'prose
     }
 }
 
-// ── Fetch ASSIGNED tasks for the logged-in PIC ───────────────────────────────
-$tsql = '{CALL SP_ALDA_PIC_GET_TASKS(?, ?)}';
-$params = [
-    [$nik, SQLSRV_PARAM_IN],
-    ['ASSIGNED', SQLSRV_PARAM_IN],
-];
+$tasks_result = $db->getTasks($nik, 'ASSIGNED');
 
-$stmt = sqlsrv_query($conn, $tsql, $params);
-
-if ($stmt === false) {
+if ($tasks_result === false) {
     $error_message = 'Terjadi kesalahan mengambil data penugasan.';
 } else {
-    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-        $tasks[] = $row;
-    }
-    sqlsrv_free_stmt($stmt);
+    $tasks = $tasks_result;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
 function formatRupiah(mixed $angka): string
 {
     return 'Rp ' . number_format((float) $angka, 0, ',', '.');
@@ -190,7 +167,6 @@ function svgIcon(string $name, string $class = 'icon'): string
         </div>
     </div>
 
-    <!-- Detail Modal -->
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">

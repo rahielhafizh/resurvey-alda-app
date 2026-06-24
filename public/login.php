@@ -1,11 +1,8 @@
 <?php
 session_start();
 
-require_once __DIR__ . '/../config/connection.php';
-
-if (!isset($conn) || $conn === false) {
-    die("Koneksi database gagal. Periksa konfigurasi di config/connection.php");
-}
+require_once __DIR__ . '/database.php';
+$db = new Database();
 
 if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
     header('Location: dashboard.php');
@@ -19,36 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     if (!empty($nik) && !empty($password)) {
-        $tsql = "{CALL SP_LOGIN_RESURVEY_ALDA(?, ?)}";
-        $params = array(
-            array($nik, SQLSRV_PARAM_IN),
-            array($password, SQLSRV_PARAM_IN)
-        );
-
-        $stmt = sqlsrv_query($conn, $tsql, $params);
-
-        if ($stmt === false) {
-            $error = 'Terjadi kesalahan pada sistem database. Silakan coba lagi.';
-            // die(print_r(sqlsrv_errors(), true));
-        } else {
-            $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-            if ($row) {
-                if ($row['LoginStatus'] == 1) {
-                    $_SESSION['user_logged_in'] = true;
-                    $_SESSION['user_nik'] = $row['NIK'];
-                    $_SESSION['user_name'] = $row['NAMA'];
-                    header('Location: dashboard.php');
-                    exit();
-                } else {
-                    $error = $row['Message'];
-                }
+        $row = $db->loginResurveyAlda($nik, $password);
+        if ($row === false) {
+            $error = 'Terjadi kesalahan pada database. Silakan coba lagi.';
+        } else if ($row !== null) {
+            if ($row['LoginStatus'] == 1) {
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['user_nik'] = $row['NIK'];
+                $_SESSION['user_name'] = $row['NAMA'];
+                header('Location: dashboard.php');
+                exit();
             } else {
-                $error = 'Gagal memproses respons dari server database.';
+                $error = $row['Message'];
             }
-            sqlsrv_free_stmt($stmt);
+        } else {
+            $error = 'Gagal memproses respons dari server.';
         }
     } else {
-        $error = 'Mohon isi NIK dan kata sandi Anda.';
+        $error = 'Mohon isi NIK dan kata sandi.';
     }
 }
 

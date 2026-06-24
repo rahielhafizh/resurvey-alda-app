@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 session_start();
-require_once __DIR__ . '/../config/connection.php';
+require_once __DIR__ . '/database.php';
+$db = new Database();
 
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true || !isset($_SESSION['user_nik'])) {
     header('Location: login.php');
@@ -11,12 +12,9 @@ if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true 
 
 $nik = $_SESSION['user_nik'];
 $userName = 'User';
+$row_pic = $db->getPicByNik($nik);
 
-// ── 1. Validate PIC session against MASTER_ALDA_PIC ─────────────────────────
-$tsql_pic = 'SELECT [NAMA], [IS_ACTIVE] FROM [dbo].[MASTER_ALDA_PIC] WHERE [NIK] = ?';
-$stmt_pic = sqlsrv_query($conn, $tsql_pic, [[$nik, SQLSRV_PARAM_IN]]);
-
-if ($stmt_pic && $row_pic = sqlsrv_fetch_array($stmt_pic, SQLSRV_FETCH_ASSOC)) {
+if ($row_pic) {
     if ((int) $row_pic['IS_ACTIVE'] === 0) {
         session_unset();
         session_destroy();
@@ -32,25 +30,18 @@ if ($stmt_pic && $row_pic = sqlsrv_fetch_array($stmt_pic, SQLSRV_FETCH_ASSOC)) {
     exit();
 }
 
-sqlsrv_free_stmt($stmt_pic);
-
 $count_baru = 0;
 $count_proses = 0;
 $count_berjalan = 0;
-$tsql_summary = '{CALL SP_ALDA_PIC_TASKLIST_SUMMARY(?)}';
-$stmt_summary = sqlsrv_query($conn, $tsql_summary, [[$nik, SQLSRV_PARAM_IN]]);
 
-if ($stmt_summary) {
-    $row_summary = sqlsrv_fetch_array($stmt_summary, SQLSRV_FETCH_ASSOC);
-    if ($row_summary) {
-        $count_baru = (int) ($row_summary['TUGAS_BARU'] ?? 0);
-        $count_proses = (int) ($row_summary['TUGAS_PROSES'] ?? 0);
-        $count_berjalan = (int) ($row_summary['TUGAS_BERJALAN'] ?? 0);
-    }
-    sqlsrv_free_stmt($stmt_summary);
+$row_summary = $db->getPicTasklistSummary($nik);
+
+if ($row_summary) {
+    $count_baru = (int) ($row_summary['TUGAS_BARU'] ?? 0);
+    $count_proses = (int) ($row_summary['TUGAS_PROSES'] ?? 0);
+    $count_berjalan = (int) ($row_summary['TUGAS_BERJALAN'] ?? 0);
 }
 
-// ── Helper ───────────────────────────────────────────────────────────────────
 function svgIcon(string $name, string $class = 'icon'): string
 {
     $path = __DIR__ . '/assets/icons/' . $name . '.svg';
