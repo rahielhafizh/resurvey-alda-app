@@ -1,7 +1,9 @@
 <?php
+
 session_start();
 
 require_once __DIR__ . '/database.php';
+
 $db = new Database();
 
 if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) {
@@ -17,13 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($nik) && !empty($password)) {
         $row = $db->loginResurveyAlda($nik, $password);
+
         if ($row === false) {
             $error = 'Terjadi kesalahan pada database. Silakan coba lagi.';
-        } else if ($row !== null) {
+        } elseif ($row !== null) {
             if ($row['LoginStatus'] == 1) {
                 $_SESSION['user_logged_in'] = true;
                 $_SESSION['user_nik'] = $row['NIK'];
                 $_SESSION['user_name'] = $row['NAMA'];
+
                 header('Location: dashboard.php');
                 exit();
             } else {
@@ -40,15 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function svgIcon(string $name, string $class = 'icon'): string
 {
     $path = __DIR__ . '/assets/icons/' . $name . '.svg';
+
     if (!file_exists($path)) {
         return '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" viewBox="0 0 24 24"></svg>';
     }
+
     $svg = file_get_contents($path);
+
     if (preg_match('/\bclass="/', $svg)) {
         return preg_replace('/\bclass="/', 'class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' ', $svg, 1);
     }
+
     return preg_replace('/<svg\b/', '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '"', $svg, 1);
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

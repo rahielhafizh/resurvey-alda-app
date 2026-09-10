@@ -87,7 +87,7 @@ function svgIcon(string $name, string $class = 'icon'): string
             <div class="task-buttons">
                 <a href="tugas-baru.php" class="task-button">
                     <?php echo svgIcon('tugas-baru-icon', 'icon task-icon'); ?>
-                    <span class="task-label">Tugas Baru</span>
+                    <span class="task-label">Penugasan Baru</span>
                     <span class="task-badge"><?php echo $count_baru; ?></span>
                     <svg class="icon task-chevron" viewBox="0 0 24 24">
                         <polyline points="9 18 15 12 9 6"></polyline>
@@ -95,7 +95,7 @@ function svgIcon(string $name, string $class = 'icon'): string
                 </a>
                 <a href="tugas-proses.php" class="task-button">
                     <?php echo svgIcon('tugas-proses-icon', 'icon task-icon'); ?>
-                    <span class="task-label">Tugas Proses</span>
+                    <span class="task-label">Antrian Kunjungan</span>
                     <span class="task-badge"><?php echo $count_proses; ?></span>
                     <svg class="icon task-chevron" viewBox="0 0 24 24">
                         <polyline points="9 18 15 12 9 6"></polyline>
@@ -103,7 +103,7 @@ function svgIcon(string $name, string $class = 'icon'): string
                 </a>
                 <a href="tugas-sedang-berjalan.php" class="task-button">
                     <?php echo svgIcon('tugas-berjalan-icon', 'icon task-icon'); ?>
-                    <span class="task-label">Tugas Sedang Berjalan</span>
+                    <span class="task-label">Pelaksanaan Kunjungan</span>
                     <span class="task-badge"><?php echo $count_berjalan; ?></span>
                     <svg class="icon task-chevron" viewBox="0 0 24 24">
                         <polyline points="9 18 15 12 9 6"></polyline>

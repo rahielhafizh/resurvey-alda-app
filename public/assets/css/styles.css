@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Inter:wght@400;500;600;700&display=swap");
 
 :root {
-  --primary-dark: #03045E;
+  --primary-dark: #03045e;
   --primary-base: #003566;
-  --primary-mid: #0077B6;
-  --primary-light: #00B4D8;
-  --accent-gold: #FFD60A;
-  --accent-amber: #FFC300;
-  --surface-white: #FFFFFF;
-  --text-primary: #1A1A2E;
-  --text-muted: #6B7280;
-  --text-on-dark: #FFFFFF;
-  --border-subtle: #E5E7EB;
-  --error: #EF4444;
-  --error-light: #FEE2E2;
-  --success: #10B981;
-  --success-light: #D1FAE5;
-  --warning: #F59E0B;
+  --primary-mid: #0077b6;
+  --primary-light: #00b4d8;
+  --accent-gold: #ffd60a;
+  --accent-amber: #ffc300;
+  --surface-white: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-muted: #6b7280;
+  --text-on-dark: #ffffff;
+  --border-subtle: #e5e7eb;
+  --error: #ef4444;
+  --error-light: #fee2e2;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --warning: #f59e0b;
 }
 
 * {
@@ -26,7 +26,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -43,25 +43,33 @@ body {
 }
 
 .page-background::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 100%, rgba(3, 4, 94, 0.6) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 100%,
+    rgba(3, 4, 94, 0.6) 0%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 
 .page-background::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px
+  );
   background-size: 20px 20px;
   pointer-events: none;
 }
 
 .navbar {
   height: 64px;
-  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.20);
+  box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -70,7 +78,8 @@ body {
   z-index: 100;
 }
 
-.navbar-left {
+.navbar-left,
+.navbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -80,16 +89,10 @@ body {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-on-dark);
-}
-
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
 }
 
 .nav-icon-btn {
@@ -138,7 +141,7 @@ body {
 }
 
 .brand-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 26px;
   font-weight: 600;
   color: var(--text-on-dark);
@@ -158,7 +161,7 @@ body {
 }
 
 .login-header h2 {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
@@ -166,7 +169,7 @@ body {
 }
 
 .login-header p {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 13px;
   color: var(--text-muted);
 }
@@ -177,7 +180,7 @@ body {
 
 .form-label {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
@@ -200,15 +203,21 @@ body {
 .form-input {
   width: 100%;
   height: 52px;
-  padding: 0 48px;
+  padding: 0 16px;
   border-radius: 12px;
   border: 1.5px solid var(--border-subtle);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   color: var(--text-primary);
   background-color: var(--surface-white);
   transition: all 0.2s;
   outline: none;
+}
+
+/* Specific padding for input with icon in login */
+.input-wrapper .form-input[type="text"],
+.input-wrapper .form-input[type="password"] {
+  padding: 0 48px;
 }
 
 .form-input::placeholder {
@@ -217,16 +226,129 @@ body {
 
 .form-input:focus {
   border-color: var(--primary-light);
-  box-shadow: 0px 0px 0px 3px rgba(0, 180, 216, 0.30);
+  box-shadow: 0px 0px 0px 3px rgba(0, 180, 216, 0.3);
 }
 
-.form-input:focus+.input-icon {
+.form-input:focus + .input-icon {
   color: var(--primary-light);
 }
 
 .form-input.error {
   border-color: var(--error);
 }
+
+/* --- KUSTOMISASI DROPDOWN PROFESSIONAL --- */
+.custom-select-source {
+  display: none !important;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+
+.custom-select-trigger {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-subtle);
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--surface-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-select-trigger.placeholder .trigger-text {
+  color: var(--text-muted);
+}
+
+.trigger-text {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.custom-select-trigger .arrow {
+  position: absolute;
+  right: 16px;
+  width: 18px;
+  height: 18px;
+  stroke: var(--text-muted);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-select-wrapper.open .custom-select-trigger {
+  border-color: var(--primary-light);
+  box-shadow: 0px 0px 0px 3px rgba(0, 180, 216, 0.3);
+}
+
+.custom-select-wrapper.open .arrow {
+  transform: rotate(180deg);
+  stroke: var(--primary-light);
+}
+
+.custom-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background-color: var(--surface-white);
+  border-radius: 12px;
+  box-shadow: 0px 12px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-subtle);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.custom-select-wrapper.open .custom-options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.custom-option {
+  padding: 14px 16px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+  text-align: center;
+}
+
+.custom-option:hover,
+.custom-option.selected {
+  background-color: rgba(0, 180, 216, 0.08);
+  color: var(--primary-mid);
+}
+
+.custom-option:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* ---------------------------------------- */
 
 .toggle-password {
   position: absolute;
@@ -246,7 +368,7 @@ body {
 .forgot-password {
   display: block;
   text-align: right;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--primary-mid);
@@ -265,7 +387,7 @@ body {
   border-radius: 12px;
   background-color: var(--accent-gold);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 15px;
   font-weight: 600;
   border: none;
@@ -285,7 +407,7 @@ body {
 .login-footer {
   margin-top: 32px;
   text-align: center;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.45);
 }
@@ -304,14 +426,14 @@ body {
 }
 
 .greeting-text {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
   margin-bottom: 4px;
 }
 
 .greeting-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--text-on-dark);
@@ -351,7 +473,7 @@ body {
   flex: 1;
   text-align: left;
   margin-left: 16px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -361,7 +483,7 @@ body {
   padding: 4px 12px;
   border-radius: 20px;
   background-color: var(--accent-gold);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
@@ -404,12 +526,11 @@ body {
 }
 
 .secondary-label {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
 }
-
 
 .mobile-wrapper {
   width: 100%;
@@ -452,7 +573,7 @@ body {
 }
 
 .page-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -472,7 +593,7 @@ body {
   font-size: 13px;
   font-weight: 500;
   text-align: center;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .alert-error {
@@ -506,7 +627,7 @@ body {
 }
 
 .contract-no {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 700;
   color: var(--primary-mid);
   font-size: 14px;
@@ -519,7 +640,7 @@ body {
 }
 
 .customer-name {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -531,7 +652,7 @@ body {
   color: var(--text-muted);
   margin-bottom: 12px;
   display: inline-block;
-  background: var(--surface-bg);
+  background: var(--surface-white);
   padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid var(--border-subtle);
@@ -569,12 +690,14 @@ body {
   align-items: center;
   height: 44px;
   border-radius: 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
   border: none;
-  transition: transform 0.1s, opacity 0.2s;
+  transition:
+    transform 0.1s,
+    opacity 0.2s;
   text-decoration: none;
 }
 
@@ -638,7 +761,7 @@ body {
 }
 
 .modal-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
@@ -707,7 +830,7 @@ body {
 }
 
 .empty-state h3 {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--text-on-dark);
@@ -729,25 +852,13 @@ body {
   fill: none;
 }
 
-.icon-lg {
-  width: 24px;
-  height: 24px;
-}
-
-.icon-xl {
-  width: 28px;
-  height: 28px;
-}
-
 @media (max-width: 390px) {
   .navbar {
     padding: 0 16px;
   }
-
   .dashboard-content {
     padding: 20px 16px;
   }
-
   .login-container {
     padding: 20px 16px;
   }

@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 session_start();
 require_once __DIR__ . '/database.php';
 $db = new Database();
@@ -14,54 +12,57 @@ $nik = $_SESSION['user_nik'];
 $tasks = [];
 $error_message = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'proses_tugas') {
-    $raw_id = $_POST['penugasan_id'] ?? '';
-    $penugasan_id = (ctype_digit((string) $raw_id) && (int) $raw_id > 0)
-        ? (int) $raw_id
-        : null;
+$action = isset($_POST['action']) ? $_POST['action'] : '';
 
-    if ($penugasan_id === null) {
-        $error_message = 'ID penugasan tidak valid.';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'proses_tugas') {
+    $penugasan_id = isset($_POST['penugasan_id']) ? (int) trim((string) $_POST['penugasan_id']) : 0;
+    $assign_version = isset($_POST['assign_version']) ? (int) trim((string) $_POST['assign_version']) : 0;
+
+    if ($penugasan_id <= 0) {
+        $error_message = "[ERROR] ID Penugasan tidak valid (Nilai: $penugasan_id).";
+    } elseif ($assign_version <= 0) {
+        $error_message = "[ERROR] Versi penugasan : $assign_version. Pastikan ASSIGN_VERSION tidak NULL/0.";
     } else {
-        $result = $db->updateTaskStatus($penugasan_id, $nik, 'IN_PROGRESS');
+        $result = $db->updateTaskStatus($penugasan_id, $nik, 'IN_PROGRESS', $assign_version);
 
         if ($result === false) {
-            $error_message = 'Terjadi kesalahan server saat mengubah status.';
+            $error_message = '[ERROR] Terjadi kesalahan server.';
         } else {
             if ($result && (bool) $result['success'] === true) {
-                $_SESSION['flash_success'] = 'Penugasan berhasil dilanjutkan ke tahap proses.';
+                $_SESSION['flash_success'] = '[SUCCESS] Penugasan telah diterima dan masuk ke antrian.';
                 header('Location: tugas-proses.php');
                 exit();
             } else {
-                $error_message = $result['message'] ?? 'Gagal memproses tugas.';
+                $error_message = isset($result['message']) ? $result['message'] : '[ERROR] Penugasan gagal diterima.';
             }
         }
     }
 }
 
 $tasks_result = $db->getTasks($nik, 'ASSIGNED');
-
 if ($tasks_result === false) {
-    $error_message = 'Terjadi kesalahan mengambil data penugasan.';
+    $error_message = '[ERROR] Data penugasan gagal diproses.';
 } else {
     $tasks = $tasks_result;
 }
 
-function formatRupiah(mixed $angka): string
+function formatRupiah($angka)
 {
     return 'Rp ' . number_format((float) $angka, 0, ',', '.');
 }
 
-function svgIcon(string $name, string $class = 'icon'): string
+function svgIcon($name, $class = 'icon')
 {
     $path = __DIR__ . '/assets/icons/' . $name . '.svg';
     if (!file_exists($path)) {
         return '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" viewBox="0 0 24 24"></svg>';
     }
+
     $svg = file_get_contents($path);
     if (preg_match('/\bclass="/', $svg)) {
         return preg_replace('/\bclass="/', 'class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . ' ', $svg, 1);
     }
+
     return preg_replace('/<svg\b/', '<svg class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '"', $svg, 1);
 }
 ?>
@@ -71,7 +72,7 @@ function svgIcon(string $name, string $class = 'icon'): string
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tugas Baru - Resurvey Alda</title>
+    <title>Daftar Penugasan</title>
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
@@ -86,21 +87,20 @@ function svgIcon(string $name, string $class = 'icon'): string
                         <polyline points="12 19 5 12 12 5"></polyline>
                     </svg>
                 </button>
-                <h1 class="page-title">Tugas Baru</h1>
+                <h1 class="page-title">Penugasan Baru</h1>
             </div>
 
             <div class="task-list-container">
                 <?php if (!empty($error_message)): ?>
-                    <div class="alert alert-error">
-                        <?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?>
+                    <div class="alert alert-error"><?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?>
                     </div>
                 <?php endif; ?>
 
                 <?php if (empty($tasks) && empty($error_message)): ?>
                     <div class="empty-state">
                         <?php echo svgIcon('empty-folder-icon'); ?>
-                        <h3>Belum ada tugas baru</h3>
-                        <p>Saat ini tidak ada penugasan baru untuk Anda.</p>
+                        <h3>Tidak Ada Penugasan Baru</h3>
+                        <p>Belum ada penugasan yang diberikan.</p>
                     </div>
                 <?php else: ?>
                     <?php foreach ($tasks as $task):
@@ -111,33 +111,24 @@ function svgIcon(string $name, string $class = 'icon'): string
                             'phone' => $task['CUSTOMER_PHONE'],
                             'vehicle' => $task['KENDARAAN'],
                             'amount' => formatRupiah($task['AMOUNT_TO_BE_PAID']),
-                            'date' => ($task['TANGGAL_ASSIGN'] instanceof DateTime)
-                                ? $task['TANGGAL_ASSIGN']->format('d M Y H:i')
-                                : '-',
                         ]);
                         ?>
                         <div class="task-card">
                             <div class="task-header">
-                                <span class="contract-no">
-                                    <?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?>
-                                </span>
+                                <span
+                                    class="contract-no"><?php echo htmlspecialchars($task['CONTRACT_NO'], ENT_QUOTES, 'UTF-8'); ?></span>
                                 <span class="task-date">
-                                    <?php echo ($task['TANGGAL_ASSIGN'] instanceof DateTime)
-                                        ? $task['TANGGAL_ASSIGN']->format('d M Y H:i')
-                                        : '-'; ?>
+                                    <?php echo ($task['TANGGAL_ASSIGN'] instanceof DateTime) ? $task['TANGGAL_ASSIGN']->format('d M Y H:i') : '-'; ?>
                                 </span>
                             </div>
-
                             <h3 class="customer-name">
                                 <?php echo htmlspecialchars($task['CUSTOMER_NAME'], ENT_QUOTES, 'UTF-8'); ?>
                             </h3>
-
                             <?php if (trim((string) $task['KENDARAAN']) !== ''): ?>
-                                <div class="customer-vehicle">
-                                    🚗 <?php echo htmlspecialchars($task['KENDARAAN'], ENT_QUOTES, 'UTF-8'); ?>
+                                <div class="customer-vehicle">🚗
+                                    <?php echo htmlspecialchars($task['KENDARAAN'], ENT_QUOTES, 'UTF-8'); ?>
                                 </div>
                             <?php endif; ?>
-
                             <div class="detail-row">
                                 <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                     stroke-linecap="round" stroke-linejoin="round">
@@ -146,18 +137,16 @@ function svgIcon(string $name, string $class = 'icon'): string
                                 </svg>
                                 <span><?php echo htmlspecialchars((string) $task['LEGAL_ADDRESS'], ENT_QUOTES, 'UTF-8'); ?></span>
                             </div>
-
                             <div class="action-group">
                                 <button type="button" class="btn btn-outline"
-                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>
-                                    Detail
-                                </button>
-
+                                    onclick='openModal(<?php echo htmlspecialchars($payload, ENT_QUOTES, 'UTF-8'); ?>)'>Detail</button>
                                 <form method="POST" style="flex: 1;"
-                                    onsubmit="return confirm('Mulai proses tugas ini? Data akan dipindahkan ke tab Tugas Diproses.');">
+                                    onsubmit="return confirm('Konfirmasi terima penugasan? Penugasan akan masuk ke dalam Antrian Kunjungan.');">
                                     <input type="hidden" name="action" value="proses_tugas">
                                     <input type="hidden" name="penugasan_id" value="<?php echo (int) $task['PENUGASAN_ID']; ?>">
-                                    <button type="submit" class="btn btn-primary" style="width: 100%;">Proses</button>
+                                    <input type="hidden" name="assign_version"
+                                        value="<?php echo (int) $task['ASSIGN_VERSION']; ?>">
+                                    <button type="submit" class="btn btn-primary" style="width: 100%;">Terima Penugasan</button>
                                 </form>
                             </div>
                         </div>
@@ -170,7 +159,7 @@ function svgIcon(string $name, string $class = 'icon'): string
     <div class="modal-overlay" id="detailModal">
         <div class="modal-container">
             <div class="modal-header">
-                <h3 class="modal-title">Detail Penugasan</h3>
+                <h3 class="modal-title">Detail Nasabah</h3>
                 <button class="modal-close" onclick="closeModal()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -180,54 +169,34 @@ function svgIcon(string $name, string $class = 'icon'): string
                 </button>
             </div>
             <div class="modal-body">
-                <div class="info-group">
-                    <span class="info-label">No Kontrak</span>
-                    <span class="info-value" id="mdlContract">-</span>
-                </div>
-                <div class="info-group">
-                    <span class="info-label">Nama Nasabah</span>
-                    <span class="info-value" id="mdlCustomer">-</span>
-                </div>
-                <div class="info-group">
-                    <span class="info-label">Alamat</span>
-                    <span class="info-value" id="mdlAddress">-</span>
-                </div>
-                <div class="info-group">
-                    <span class="info-label">Telepon</span>
-                    <span class="info-value" id="mdlPhone">-</span>
-                </div>
-                <div class="info-group">
-                    <span class="info-label">Unit Kendaraan</span>
-                    <span class="info-value" id="mdlVehicle">-</span>
-                </div>
-                <div class="info-group">
-                    <span class="info-label">Tagihan</span>
-                    <span class="info-value" style="color: var(--error);" id="mdlAmount">-</span>
-                </div>
+                <div class="info-group"><span class="info-label">Nomor Kontrak</span><span class="info-value"
+                        id="mdlContract">-</span></div>
+                <div class="info-group"><span class="info-label">Nama Nasabah</span><span class="info-value"
+                        id="mdlCustomer">-</span></div>
+                <div class="info-group"><span class="info-label">Alamat Nasabah</span><span class="info-value"
+                        id="mdlAddress">-</span></div>
+                <div class="info-group"><span class="info-label">Nomor Telepon</span><span class="info-value"
+                        id="mdlPhone">-</span></div>
+                <div class="info-group"><span class="info-label">Unit Kendaraan</span><span class="info-value"
+                        id="mdlVehicle">-</span></div>
+                <div class="info-group"><span class="info-label">Tagihan</span><span class="info-value"
+                        style="color: var(--error);" id="mdlAmount">-</span></div>
             </div>
         </div>
     </div>
-
     <script>
         function openModal(data) {
             document.getElementById('mdlContract').innerText = data.contract_no;
             document.getElementById('mdlCustomer').innerText = data.customer;
             document.getElementById('mdlAddress').innerText = data.address;
             document.getElementById('mdlPhone').innerText = data.phone;
-            document.getElementById('mdlVehicle').innerText = data.vehicle || '-';
+            document.getElementById('mdlVehicle').innerText = data.vehicle ? data.vehicle : '-';
             document.getElementById('mdlAmount').innerText = data.amount;
             document.getElementById('detailModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
-        function closeModal() {
-            document.getElementById('detailModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        document.getElementById('detailModal').addEventListener('click', function (e) {
-            if (e.target === this) closeModal();
-        });
+        function closeModal() { document.getElementById('detailModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
+        document.getElementById('detailModal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
     </script>
 </body>
 
